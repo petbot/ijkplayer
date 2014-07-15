@@ -32,6 +32,7 @@ import tv.danmaku.ijk.media.player.IMediaPlayer.OnVideoSizeChangedListener;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 import tv.danmaku.ijk.media.player.option.AvFourCC;
 import tv.danmaku.ijk.media.player.option.format.AvFormatOption_HttpDetectRangeSupport;
+import tv.danmaku.ijk.media.player.option.format.AvFormatOption_disableUDP;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -243,6 +244,7 @@ public class VideoView extends SurfaceView implements
             if (mUri != null) {
                 ijkMediaPlayer = new IjkMediaPlayer();
                 ijkMediaPlayer.setAvOption(AvFormatOption_HttpDetectRangeSupport.Disable);
+                ijkMediaPlayer.setAvOption(AvFormatOption_disableUDP.Disable);
                 ijkMediaPlayer.setOverlayFormat(AvFourCC.SDL_FCC_RV32);
             }
             mMediaPlayer = ijkMediaPlayer;
