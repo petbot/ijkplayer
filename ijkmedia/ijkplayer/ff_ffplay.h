@@ -50,6 +50,7 @@ int       ffp_prepare_async_l(FFPlayer *ffp, const char *file_name);
 int       ffp_start_from_l(FFPlayer *ffp, long msec);
 int       ffp_start_l(FFPlayer *ffp);
 int       ffp_pause_l(FFPlayer *ffp);
+AVFrame*       ffp_grab_frame(FFPlayer *ffp);
 int       ffp_stop_l(FFPlayer *ffp);
 int       ffp_wait_stop_l(FFPlayer *ffp);
 

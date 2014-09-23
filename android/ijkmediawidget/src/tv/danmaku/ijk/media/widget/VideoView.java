@@ -600,6 +600,10 @@ public class VideoView extends SurfaceView implements
         mTargetState = STATE_PAUSED;
     }
 
+    public byte[] grabFrame(){
+    	return mMediaPlayer.grabFrame();
+    }
+    
     public void resume() {
         if (mSurfaceHolder == null && mCurrentState == STATE_SUSPEND) {
             mTargetState = STATE_RESUME;

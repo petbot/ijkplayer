@@ -278,6 +278,8 @@ public final class IjkMediaPlayer extends SimpleMediaPlayer {
 
     private native void _pause() throws IllegalStateException;
 
+    public native byte[] grabFrame();
+    
     @SuppressLint("Wakelock")
     @Override
     public void setWakeMode(Context context, int mode) {

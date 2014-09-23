@@ -1188,6 +1188,8 @@ end:
 }
 #endif  /* CONFIG_AVFILTER */
 
+AVFrame *frame_grab = NULL;
+static bool grab_frame = false;
 static int video_thread(void *arg)
 {
     AVPacket pkt = { 0 };
@@ -1201,6 +1203,8 @@ static int video_thread(void *arg)
     AVRational tb = is->video_st->time_base;
     AVRational frame_rate = av_guess_frame_rate(is->ic, is->video_st, NULL);
 
+    frame_grab = av_frame_alloc();
+
 #if CONFIG_AVFILTER
     AVFilterGraph *graph = avfilter_graph_alloc();
     AVFilterContext *filt_out = NULL, *filt_in = NULL;
@@ -1211,6 +1215,7 @@ static int video_thread(void *arg)
 #endif
 
     for (;;) {
+
         while (is->paused && !is->videoq.abort_request)
             SDL_Delay(10);
 
@@ -1221,6 +1226,29 @@ static int video_thread(void *arg)
             goto the_end;
         if (!ret)
             continue;
+
+        // grab frame
+        SDL_LockMutex(is->frame_grab_lock);
+        if(grab_frame){
+
+            // initialize frame
+            frame_grab = av_frame_alloc();
+            frame_grab->width = frame->width;
+            frame_grab->height = frame->height;
+            frame_grab->format = PIX_FMT_RGB565;
+            av_frame_get_buffer(frame_grab, 16);
+
+            struct SwsContext *convert_context = sws_getContext(frame->width, frame->height, \
+                frame->format, frame_grab->width, frame_grab->height, frame_grab->format, \
+                0, NULL, NULL, NULL);
+
+            sws_scale (convert_context, (const uint8_t **) frame->data, frame->linesize, 0, \
+                frame->height, frame_grab->data, frame_grab->linesize);
+
+            grab_frame = false;
+        }
+        SDL_CondSignal(is->frame_grab_complete);
+        SDL_UnlockMutex(is->frame_grab_lock);
 
 #if CONFIG_AVFILTER
         if (   last_w != frame->width
@@ -1288,6 +1316,7 @@ static int video_thread(void *arg)
 #endif
     av_free_packet(&pkt);
     av_frame_free(&frame);
+    av_frame_free(&frame_grab);
     return 0;
 }
 
@@ -2418,6 +2447,10 @@ static VideoState *stream_open(FFPlayer *ffp, const char *filename, AVInputForma
     is->av_sync_type = ffp->av_sync_type;
 
     is->play_mutex = SDL_CreateMutex();
+
+    is->frame_grab_lock = SDL_CreateMutex();
+    is->frame_grab_complete = SDL_CreateCond();
+
     ffp->is = is;
 
     is->video_refresh_tid = SDL_CreateThreadEx(&is->_video_refresh_tid, video_refresh_thread, ffp, "ff_vout");
@@ -2706,6 +2739,21 @@ int ffp_pause_l(FFPlayer *ffp)
 
     toggle_pause(ffp, 1);
     return 0;
+}
+
+AVFrame* ffp_grab_frame(FFPlayer *ffp){
+    
+    VideoState *is = ffp->is;
+
+    // request to grab frame
+    SDL_LockMutex(is->frame_grab_lock);
+    grab_frame = true;
+    while(grab_frame){
+        SDL_CondWait(is->frame_grab_complete, is->frame_grab_lock);
+    }
+    SDL_UnlockMutex(is->frame_grab_lock);
+    
+    return frame_grab;
 }
 
 int ffp_stop_l(FFPlayer *ffp)

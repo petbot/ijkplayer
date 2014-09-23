@@ -47,6 +47,8 @@ public interface IMediaPlayer {
 
     public abstract void pause() throws IllegalStateException;
 
+    public abstract byte[] grabFrame();
+    
     public abstract void setScreenOnWhilePlaying(boolean screenOn);
 
     public abstract int getVideoWidth();

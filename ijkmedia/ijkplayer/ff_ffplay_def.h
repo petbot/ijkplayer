@@ -287,6 +287,9 @@ typedef struct VideoState {
     SDL_Thread *video_refresh_tid;
     SDL_Thread _video_refresh_tid;
 
+    SDL_mutex *frame_grab_lock;
+    SDL_cond *frame_grab_complete;
+
     int buffering_on;
     int pause_req;
 

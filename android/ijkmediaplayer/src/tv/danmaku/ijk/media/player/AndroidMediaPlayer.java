@@ -331,4 +331,10 @@ public class AndroidMediaPlayer extends SimpleMediaPlayer {
             notifyOnPrepared();
         }
     }
+
+	@Override
+	public byte[] grabFrame() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

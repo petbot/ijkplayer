@@ -29,6 +29,7 @@
 #include "../ff_ffplay.h"
 #include "ijkplayer_android_def.h"
 #include "ijkplayer_android.h"
+#include "ijkplayer_internal.h"
 
 #define JNI_MODULE_PACKAGE      "tv/danmaku/ijk/media/player"
 #define JNI_CLASS_IJKPLAYER     "tv/danmaku/ijk/media/player/IjkMediaPlayer"
@@ -177,6 +178,30 @@ IjkMediaPlayer_pause(JNIEnv *env, jobject thiz)
 
     LABEL_RETURN:
     ijkmp_dec_ref_p(&mp);
+}
+
+static jbyteArray
+IjkMediaPlayer_grabFrame(JNIEnv *env, jobject thiz){
+    
+    IjkMediaPlayer *mp = jni_get_media_player(env, thiz);
+    JNI_CHECK_GOTO(mp, env, "java/lang/IllegalStateException", "mpjni: grab: null mp", LABEL_RETURN);
+
+    // grab video frame
+    AVFrame *frame = ffp_grab_frame(mp->ffplayer);
+
+    // make a new byte array the size of the picture
+    int picture_size = avpicture_get_size(frame->format, frame->width, frame->height);
+    jbyteArray data = (*env)->NewByteArray(env, picture_size);
+    
+    // copy video frame into byte array
+    (*env)->SetByteArrayRegion(env, data, 0 , picture_size, (jbyte*)(frame->data[0]));;
+    
+    av_frame_unref(frame);
+    return data;
+
+    LABEL_RETURN:
+    ijkmp_dec_ref_p(&mp);
+    return NULL;
 }
 
 static void
@@ -479,6 +504,7 @@ static JNINativeMethod g_methods[] = {
     { "_stop",              "()V",      (void *) IjkMediaPlayer_stop },
     { "seekTo",             "(J)V",     (void *) IjkMediaPlayer_seekTo },
     { "_pause",             "()V",      (void *) IjkMediaPlayer_pause },
+    { "grabFrame",          "()[B",     (void *) IjkMediaPlayer_grabFrame },
     { "isPlaying",          "()Z",      (void *) IjkMediaPlayer_isPlaying },
     { "getCurrentPosition", "()J",      (void *) IjkMediaPlayer_getCurrentPosition },
     { "getDuration",        "()J",      (void *) IjkMediaPlayer_getDuration },
