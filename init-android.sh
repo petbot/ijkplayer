@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 IJK_FFMPEG_UPSTREAM=git://git.videolan.org/ffmpeg.git
-IJK_FFMPEG_FORK=https://github.com/bbcallen/FFmpeg.git
+IJK_FFMPEG_FORK=https://github.com/petbot/ijk-ffmpeg.git
 IJK_FFMPEG_COMMIT=ijk-r0.1.2-dev
 IJK_FFMPEG_LOCAL_REPO=extra/ffmpeg
 
