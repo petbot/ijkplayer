@@ -109,6 +109,9 @@ public class VideoView extends SurfaceView implements
     private boolean mCanSeekForward = true;
     private Context mContext;
 
+    private int local_port;
+    private int advertised_port;
+    
     public VideoView(Context context) {
         super(context);
         initVideoView(context);
@@ -244,7 +247,8 @@ public class VideoView extends SurfaceView implements
             if (mUri != null) {
                 ijkMediaPlayer = new IjkMediaPlayer();
                 ijkMediaPlayer.setAvOption(AvFormatOption_HttpDetectRangeSupport.Disable);
-                ijkMediaPlayer.setAvOption(AvFormatOption_disableUDP.Disable);
+                ijkMediaPlayer.setAvFormatOption("min_port", String.valueOf(local_port));
+                ijkMediaPlayer.setAvFormatOption("adv_port", String.valueOf(advertised_port));
                 ijkMediaPlayer.setOverlayFormat(AvFourCC.SDL_FCC_RV32);
             }
             mMediaPlayer = ijkMediaPlayer;
@@ -580,6 +584,14 @@ public class VideoView extends SurfaceView implements
         }
     }
 
+    public void setLocalPort(int port){
+    	local_port = port;
+    }
+    
+    public void setAdvertisedPort(int port){
+    	advertised_port = port;
+    }
+    
     @Override
     public void start() {
         if (isInPlaybackState()) {
